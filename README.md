@@ -1,5 +1,8 @@
 # Prometheus Job Event Listener for Apache Oozie 
 
+
+[![Maven metadata URI](https://img.shields.io/maven-metadata/v/http/central.maven.org/maven2/de/m3y/oozie/prometheus/oozie-prometheus-job-event-listener/maven-metadata.xml.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.m3y.oozie.prometheus%22%20AND%20a%3A%22oozie-prometheus-job-event-listener%22)
+
 Exposes [Apache Oozie](https://oozie.apache.org) job metrics to [Prometheus](https://prometheus.io/).
 
 The implementation hooks directly into Oozie by implementing the Oozie [JobEventListener](https://oozie.apache.org/docs/4.2.0/core/apidocs/org/apache/oozie/event/listener/JobEventListener.html).
