@@ -6,7 +6,7 @@ The implementation hooks directly into Oozie by implementing the Oozie [JobEvent
 This has the advantage of a direct instrumentation, versus alternative approaches such as polling database or Oozie API.
 
 For Oozie server metrics (database connections etc.) check out the [Apache Oozie Exporter](https://github.com/marcelmay/apache-oozie-exporter),
-or if you run Apache Oozie 4.3.+ which exposes its internal server metrics to JMX try the Prometheus [jmx_exporter](https://github.com/prometheus/jmx_exporter)
+or if you run [Apache Oozie 4.3.+](http://oozie.apache.org/docs/4.3.0/release-log.txt) which exposes its internal server metrics to JMX ([OOZIE-2507](https://issues.apache.org/jira/browse/OOZIE-2507)) try the Prometheus [jmx_exporter](https://github.com/prometheus/jmx_exporter)
 
 ## Metrics exposed
 
