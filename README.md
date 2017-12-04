@@ -5,7 +5,7 @@ Exposes [Apache Oozie](https://oozie.apache.org) job metrics to [Prometheus](htt
 The implementation hooks directly into Oozie by implementing the Oozie [JobEventListener](https://oozie.apache.org/docs/4.2.0/core/apidocs/org/apache/oozie/event/listener/JobEventListener.html).
 This has the advantage of a direct instrumentation, versus alternative approaches such as polling database or Oozie API.
 
-For Oozie server metrics (database connections etc.) check out the [Apache Oozie Exporter)[https://github.com/marcelmay/apache-oozie-exporter),
+For Oozie server metrics (database connections etc.) check out the [Apache Oozie Exporter](https://github.com/marcelmay/apache-oozie-exporter),
 or if you run Apache Oozie 4.3.+ which exposes its internal server metrics to JMX try the Prometheus [jmx_exporter](https://github.com/prometheus/jmx_exporter)
 
 ## Metrics exposed
