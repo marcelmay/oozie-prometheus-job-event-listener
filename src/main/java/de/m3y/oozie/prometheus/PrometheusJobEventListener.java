@@ -1,5 +1,6 @@
 package de.m3y.oozie.prometheus;
 
+import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.oozie.client.event.JobEvent;
@@ -19,12 +20,17 @@ public class PrometheusJobEventListener extends JobEventListener {
 
     private static final Gauge WORKFLOW_DURATION = Gauge.build()
             .name("oozie_workflow_job_duration_seconds")
-            .help("oozie_workflow_job_duration_seconds")
+            .help("Duration of completed jobs")
             .labelNames("job_type", "app_name", "status")
             .register();
     private static final Gauge WORKFLOW_EVENT = Gauge.build()
             .name("oozie_workflow_job_state_time_seconds")
-            .help("oozie_workflow_job_state_time_seconds")
+            .help("Timestamp of completed job state changes")
+            .labelNames("job_type", "app_name", "status")
+            .register();
+    private static final Counter WORKFLOW_EVENT_TOTAL = Counter.build()
+            .name("oozie_workflow_job_total")
+            .help("Count of completed job state changes")
             .labelNames("job_type", "app_name", "status")
             .register();
 
@@ -95,6 +101,11 @@ public class PrometheusJobEventListener extends JobEventListener {
                 event.getAppName(),
                 status
         ).setToCurrentTime();
+        WORKFLOW_EVENT_TOTAL.labels(
+                event.getAppType().name(),
+                event.getAppName(),
+                status
+        ).inc();
     }
 
     private void updateDuration(JobEvent jobEvent, String status) {
