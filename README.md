@@ -1,7 +1,12 @@
 # Prometheus Job Event Listener for Apache Oozie 
 
-Exposes Apache Oozie job metrics to Prometheus.
+Exposes [Apache Oozie](https://oozie.apache.org) job metrics to [Prometheus](https://prometheus.io/).
 
+The implementation hooks directly into Oozie by implementing the Oozie [JobEventListener](https://oozie.apache.org/docs/4.2.0/core/apidocs/org/apache/oozie/event/listener/JobEventListener.html).
+This has the advantage of a direct instrumentation, versus alternative approaches such as polling database or Oozie API.
+
+For Oozie server metrics (database connections etc.) check out the [Apache Oozie Exporter)[https://github.com/marcelmay/apache-oozie-exporter),
+or if you run Apache Oozie 4.3.+ which exposes its internal server metrics to JMX try the Prometheus [jmx_exporter](https://github.com/prometheus/jmx_exporter)
 
 ## Metrics exposed
 
@@ -71,3 +76,11 @@ oozie_workflow_job_duration_seconds{job_type="WORKFLOW_JOB",app_name="test-4",st
 ```
 mvn install
 ```
+
+## Requirements
+
+* Oozie 4.2.x
+
+## License
+
+Licensed under [Apache 2.0 License](LICENSE)
