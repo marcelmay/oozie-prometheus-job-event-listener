@@ -9,7 +9,7 @@ The implementation hooks directly into Oozie by implementing the Oozie [JobEvent
 This has the advantage of a direct instrumentation, versus alternative approaches such as polling database or Oozie API.
 
 For Oozie server metrics (database connections etc.) check out the [Apache Oozie Exporter](https://github.com/marcelmay/apache-oozie-exporter),
-or if you run [Apache Oozie 4.3.+](http://oozie.apache.org/docs/4.3.0/release-log.txt) which exposes its internal server metrics to JMX ([OOZIE-2507](https://issues.apache.org/jira/browse/OOZIE-2507)) try the Prometheus [jmx_exporter](https://github.com/prometheus/jmx_exporter)
+or if you run [Apache Oozie 4.3.+](http://oozie.apache.org/docs/4.3.0/release-log.txt) which exposes its internal server metrics to JMX ([OOZIE-2507](https://issues.apache.org/jira/browse/OOZIE-2507)) try the Prometheus [jmx_exporter](https://github.com/prometheus/jmx_exporter).
 
 ## Metrics exposed
 
@@ -96,7 +96,7 @@ oozie_workflow_job_duration_seconds{job_type="WORKFLOW_JOB",app_name="test-4",st
      static_configs:
        - targets: ['localhost:11000']
    ```
-   Note: Replace localhost with the name of your Oozie server, and change the Oozie default port if required.
+   **Note**: Replace localhost with the name of your Oozie server, and change the Oozie default port if required.
    
 ## Building
 ```
