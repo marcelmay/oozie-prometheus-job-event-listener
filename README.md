@@ -50,7 +50,26 @@ oozie_workflow_job_duration_seconds{job_type="WORKFLOW_JOB",app_name="test-4",st
    ```
    Alternatively, add the shaded JAR to the oozie.war and redeploy it.
    
-2) Expose Prometheus metrics via simpleclient_servlet from Oozie web application
+2) Configure [Oozie job event listener](https://oozie.apache.org/docs/4.2.0/AG_Install.html#Notifications_Configuration)
+   Edit oozie-site.xml and enable event handler service:
+   ```
+   <property>
+       <name>oozie.services.ext</name>
+       <value>
+           ...
+           org.apache.oozie.service.EventHandlerService,
+       </value>
+   </property>
+   ```
+   Add the Prometheus job event listener to the list of listeners:
+   ```
+   <property>
+       <name>oozie.service.EventHandlerService.event.listeners</name>
+       <value>de.m3y.oozie.prometheus.PrometheusJobEventListener</value>
+   </property>
+   ```
+
+3) Expose Prometheus metrics via [simpleclient_servlet](https://github.com/prometheus/client_java/tree/master/simpleclient_servlet) from Oozie web application
 
    Edit <OOZIE_SERVER_DIR>/oozie-server/webapps/oozie/WEB-INF/web.xml and add the Prometheus MetricServlet:
    ```
@@ -65,7 +84,9 @@ oozie_workflow_job_duration_seconds{job_type="WORKFLOW_JOB",app_name="test-4",st
    ```
    The metrics will be available at http://<OOZIE-SERVER>:11000/oozie/metrics .
 
-3) Add Oozie to Prometheus scraping
+   **Note**: After step 1...3 you want to restart Oozie for activating the configuration changes.
+
+4) Add Oozie to Prometheus scraping
    Edit your Prometheus config and add the scrape config:
    ```
    - job_name: 'oozie_events'
