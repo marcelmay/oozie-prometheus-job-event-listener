@@ -44,6 +44,7 @@ oozie_workflow_job_duration_seconds{job_type="WORKFLOW_JOB",app_name="test-4",st
 ## Installing
 
 1) Add JAR with Prometheus Job Event Listener to Oozie WAR
+
    The shaded JAR already contains all required Prometheus Maven dependencies.
    ```
    cp oozie-prometheus-job-event-listener-VERSION-shaded.jar <OOZIE_SERVER_DIR>/oozie-server/webapps/oozie/WEB-INF/lib
@@ -51,6 +52,7 @@ oozie_workflow_job_duration_seconds{job_type="WORKFLOW_JOB",app_name="test-4",st
    Alternatively, add the shaded JAR to the oozie.war and redeploy it.
    
 2) Configure [Oozie job event listener](https://oozie.apache.org/docs/4.2.0/AG_Install.html#Notifications_Configuration)
+
    Edit oozie-site.xml and enable event handler service:
    ```
    <property>
