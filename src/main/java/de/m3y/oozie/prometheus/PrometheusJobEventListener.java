@@ -1,5 +1,7 @@
 package de.m3y.oozie.prometheus;
 
+import java.util.Date;
+
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import org.apache.hadoop.conf.Configuration;
@@ -11,27 +13,32 @@ import org.apache.oozie.util.XLog;
 /**
  * Provides Oozie job metrics for Prometheus:
  * <ul>
- *     <li>oozie_workflow_job_duration_seconds : duration of job.</li>
- *     <li>oozie_workflow_job_state_time_seconds : timestamp of job state change, including job name and changed state. Can be used for monitoring last successful run.</li>
+ * <li>oozie_workflow_job_duration_seconds : Duration of completed jobs, including job name and changed state. Can be used for alerting on lame jobs.</li>
+ * <li>oozie_workflow_job_state_time_seconds : Timestamp of completed job state changes, including job name and changed state. Can be used for alerting on last successful run</li>
+ * <li>oozie_workflow_job_total : Count of completed job state changes, including job name and changed state. Can be used to trigger alert on job failure rate.</li>
  * </ul>
  */
 public class PrometheusJobEventListener extends JobEventListener {
     private XLog LOG = XLog.getLog(PrometheusJobEventListener.class);
 
-    private static final Gauge WORKFLOW_DURATION = Gauge.build()
+    private static final String LABEL_JOB_TYPE = "job_type";
+    private static final String LABEL_APP_NAME = "app_name";
+    private static final String LABEL_STATUS = "status";
+
+    private static final Gauge WORKFLOW_JOB_DURATION = Gauge.build()
             .name("oozie_workflow_job_duration_seconds")
             .help("Duration of completed jobs")
-            .labelNames("job_type", "app_name", "status")
+            .labelNames(LABEL_JOB_TYPE, LABEL_APP_NAME, LABEL_STATUS)
             .register();
-    private static final Gauge WORKFLOW_EVENT = Gauge.build()
+    private static final Gauge WORKFLOW_JOB_EVENT = Gauge.build()
             .name("oozie_workflow_job_state_time_seconds")
             .help("Timestamp of completed job state changes")
-            .labelNames("job_type", "app_name", "status")
+            .labelNames(LABEL_JOB_TYPE, LABEL_APP_NAME, LABEL_STATUS)
             .register();
-    private static final Counter WORKFLOW_EVENT_TOTAL = Counter.build()
+    private static final Counter WORKFLOW_JOB_EVENT_TOTAL = Counter.build()
             .name("oozie_workflow_job_total")
             .help("Count of completed job state changes")
-            .labelNames("job_type", "app_name", "status")
+            .labelNames(LABEL_JOB_TYPE, LABEL_APP_NAME, LABEL_STATUS)
             .register();
 
     @Override
@@ -50,8 +57,9 @@ public class PrometheusJobEventListener extends JobEventListener {
             LOG.debug(workflowJobEvent);
         }
 
-        updateDuration(workflowJobEvent, workflowJobEvent.getStatus().name());
-        updateStatusEvent(workflowJobEvent, workflowJobEvent.getStatus().name());
+        final String statusName = workflowJobEvent.getStatus().name();
+        updateDuration(workflowJobEvent, statusName);
+        updateStatusEvent(workflowJobEvent, statusName);
     }
 
 
@@ -61,8 +69,9 @@ public class PrometheusJobEventListener extends JobEventListener {
             LOG.debug(workflowActionEvent);
         }
 
-        updateDuration(workflowActionEvent, workflowActionEvent.getStatus().name());
-        updateStatusEvent(workflowActionEvent, workflowActionEvent.getStatus().name());
+        final String statusName = workflowActionEvent.getStatus().name();
+        updateDuration(workflowActionEvent, statusName);
+        updateStatusEvent(workflowActionEvent, statusName);
     }
 
     @Override
@@ -71,8 +80,9 @@ public class PrometheusJobEventListener extends JobEventListener {
             LOG.debug(coordinatorJobEvent);
         }
 
-        updateDuration(coordinatorJobEvent, coordinatorJobEvent.getStatus().name());
-        updateStatusEvent(coordinatorJobEvent, coordinatorJobEvent.getStatus().name());
+        final String statusName = coordinatorJobEvent.getStatus().name();
+        updateDuration(coordinatorJobEvent, statusName);
+        updateStatusEvent(coordinatorJobEvent, statusName);
     }
 
     @Override
@@ -81,8 +91,9 @@ public class PrometheusJobEventListener extends JobEventListener {
             LOG.debug(coordinatorActionEvent);
         }
 
-        updateDuration(coordinatorActionEvent, coordinatorActionEvent.getStatus().name());
-        updateStatusEvent(coordinatorActionEvent, coordinatorActionEvent.getStatus().name());
+        final String statusName = coordinatorActionEvent.getStatus().name();
+        updateDuration(coordinatorActionEvent, statusName);
+        updateStatusEvent(coordinatorActionEvent, statusName);
     }
 
     @Override
@@ -96,26 +107,29 @@ public class PrometheusJobEventListener extends JobEventListener {
     }
 
     private void updateStatusEvent(JobEvent event, String status) {
-        WORKFLOW_EVENT.labels(
-                event.getAppType().name(),
+        final String appName = event.getAppType().name();
+        WORKFLOW_JOB_EVENT.labels(
+                appName,
                 event.getAppName(),
                 status
         ).setToCurrentTime();
-        WORKFLOW_EVENT_TOTAL.labels(
-                event.getAppType().name(),
+        WORKFLOW_JOB_EVENT_TOTAL.labels(
+                appName,
                 event.getAppName(),
                 status
         ).inc();
     }
 
     private void updateDuration(JobEvent jobEvent, String status) {
-        if (null != jobEvent.getEndTime() && null != jobEvent.getStartTime()) {
-            long time = jobEvent.getEndTime().getTime() - jobEvent.getStartTime().getTime();
-            WORKFLOW_DURATION.labels(
+        final Date endTime = jobEvent.getEndTime();
+        final Date startTime = jobEvent.getStartTime();
+        if (null != endTime && null != startTime) {
+            final long duration = endTime.getTime() - startTime.getTime();
+            WORKFLOW_JOB_DURATION.labels(
                     jobEvent.getAppType().name(),
                     jobEvent.getAppName(),
                     status
-            ).set(time/1000L /* Convert ms to s */);
+            ).set(duration / 1000L /* Convert ms to seconds */);
         }
     }
 }
