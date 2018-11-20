@@ -102,20 +102,23 @@ public class PrometheusJobEventListener extends JobEventListener {
             LOG.debug(bundleJobEvent);
         }
 
-        updateDuration(bundleJobEvent, bundleJobEvent.getStatus().name());
-        updateStatusEvent(bundleJobEvent, bundleJobEvent.getStatus().name());
+        final String statusName = bundleJobEvent.getStatus().name();
+
+        updateDuration(bundleJobEvent, statusName);
+        updateStatusEvent(bundleJobEvent, statusName);
     }
 
     private void updateStatusEvent(JobEvent event, String status) {
-        final String appName = event.getAppType().name();
+        final String appTypeName = event.getAppType().name();
+        final String appName = event.getAppName();
         WORKFLOW_JOB_EVENT.labels(
+                appTypeName,
                 appName,
-                event.getAppName(),
                 status
         ).setToCurrentTime();
         WORKFLOW_JOB_EVENT_TOTAL.labels(
+                appTypeName,
                 appName,
-                event.getAppName(),
                 status
         ).inc();
     }
