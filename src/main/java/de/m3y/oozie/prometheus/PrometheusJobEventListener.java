@@ -129,7 +129,7 @@ public class PrometheusJobEventListener extends JobEventListener {
                     jobEvent.getAppType().name(),
                     jobEvent.getAppName(),
                     status
-            ).set(duration / 1000L /* Convert ms to seconds */);
+            ).set(duration / 1000d /* Convert ms to seconds */);
         }
     }
 }
