@@ -1,19 +1,20 @@
 package de.m3y.oozie.prometheus;
 
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.prometheus.client.Collector;
+import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.CollectorRegistry;
 import org.apache.oozie.client.Job;
 import org.apache.oozie.event.BundleJobEvent;
 import org.junit.Test;
 
-import static de.m3y.oozie.prometheus.MetricFamilySamplesAssert.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.fail;
+import static de.m3y.prometheus.assertj.CollectorRegistryUtils.getMetricFamilySamples;
+import static de.m3y.prometheus.assertj.MetricFamilySamplesAssert.assertThat;
+import static de.m3y.prometheus.assertj.MetricFamilySamplesAssert.labelValues;
+import static org.assertj.core.api.Assertions.within;
 
 public class PrometheusJobEventListenerTest {
     @Test
@@ -28,49 +29,32 @@ public class PrometheusJobEventListenerTest {
                 new Date(start0), new Date(end0));
         prometheusJobEventListener.onBundleJobEvent(jobEvent);
 
-        final List<Collector.MetricFamilySamples> list = Collections.list(CollectorRegistry.defaultRegistry.metricFamilySamples());
-        for (Collector.MetricFamilySamples metricFamilySamples : list) {
-            final List<Collector.MetricFamilySamples.Sample> samples = metricFamilySamples.samples;
-            switch (metricFamilySamples.name) {
-                case "oozie_workflow_job_total":
-                    assertThat(metricFamilySamples)
-                            .hasType(Collector.Type.COUNTER)
-                            .hasSample(
-                                    Arrays.asList("job_type", "app_name", "status"),
-                                    Arrays.asList(jobEvent.getAppType().name(), jobEvent.getAppName(), jobEvent.getStatus().name()),
-                                    1d /* one count */
-                            );
-                    break;
-                case "oozie_workflow_job_duration_seconds":
-                    assertThat(metricFamilySamples)
-                            .hasType(Collector.Type.GAUGE)
-                            .hasSample(
-                                    Arrays.asList("job_type", "app_name", "status"),
-                                    Arrays.asList(jobEvent.getAppType().name(), jobEvent.getAppName(), jobEvent.getStatus().name()),
-                                    (double) (end0 - start0) / 1000d /* ms to seconds */
-                            );
-                    break;
-                case "oozie_workflow_job_state_time_seconds":
-                    assertThat(metricFamilySamples)
-                            .hasType(Collector.Type.GAUGE)
-                            .hasAnySamples()
-                            .hasSample(
-                                    Arrays.asList("job_type", "app_name", "status")
-                            )
-                            .hasSample(
-                                    Arrays.asList("job_type", "app_name", "status"),
-                                    Arrays.asList(jobEvent.getAppType().name(), jobEvent.getAppName(), jobEvent.getStatus().name())
-                            )
-                            .hasSample(
-                                    Arrays.asList("job_type", "app_name", "status"),
-                                    Arrays.asList(jobEvent.getAppType().name(), jobEvent.getAppName(), jobEvent.getStatus().name()),
-                                    start0 / 1000d, 1d /* error tolerance of 1s */
-                            );
-                    break;
-                default:
-                    fail("Unexpected metric name " + metricFamilySamples.name);
-            }
-        }
+        MetricFamilySamples mfsWorkflowJobTotal = getMetricFamilySamples("oozie_workflow_job_total");
+        assertThat(mfsWorkflowJobTotal)
+                .hasTypeOfCounter()
+                .hasSampleLabelNames("job_type", "app_name", "status")
+                .hasSampleValue(
+                        labelValues(jobEvent.getAppType().name(), jobEvent.getAppName(), jobEvent.getStatus().name()),
+                        1d /* one count */
+                );
 
+        MetricFamilySamples mfsWorkflowJobDuration = getMetricFamilySamples("oozie_workflow_job_duration_seconds");
+        assertThat(mfsWorkflowJobDuration)
+                .hasTypeOfGauge()
+                .hasSampleLabelNames("job_type", "app_name", "status")
+                .hasSampleValue(
+                        labelValues(jobEvent.getAppType().name(), jobEvent.getAppName(), jobEvent.getStatus().name()),
+                        (end0 - start0)/1000d // ms to seconds
+                );
+
+        MetricFamilySamples mfsWorkflowJobStateTime = getMetricFamilySamples("oozie_workflow_job_state_time_seconds");
+        assertThat(mfsWorkflowJobStateTime)
+                .hasTypeOfGauge()
+                .hasAnySamples()
+                .hasSampleLabelNames("job_type", "app_name", "status")
+                .hasSampleValue(
+                        labelValues(jobEvent.getAppType().name(), jobEvent.getAppName(), jobEvent.getStatus().name()),
+                        da -> da.isEqualTo(start0 / 1000d, within(1d))
+                );
     }
 }
