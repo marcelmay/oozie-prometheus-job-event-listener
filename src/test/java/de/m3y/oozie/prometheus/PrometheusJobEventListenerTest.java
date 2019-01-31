@@ -2,9 +2,7 @@ package de.m3y.oozie.prometheus;
 
 
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
-import io.prometheus.client.Collector;
 import io.prometheus.client.Collector.MetricFamilySamples;
 import io.prometheus.client.CollectorRegistry;
 import org.apache.oozie.client.Job;
@@ -44,7 +42,7 @@ public class PrometheusJobEventListenerTest {
                 .hasSampleLabelNames("job_type", "app_name", "status")
                 .hasSampleValue(
                         labelValues(jobEvent.getAppType().name(), jobEvent.getAppName(), jobEvent.getStatus().name()),
-                        (end0 - start0)/1000d // ms to seconds
+                        (end0 - start0) / 1000d // ms to seconds
                 );
 
         MetricFamilySamples mfsWorkflowJobStateTime = getMetricFamilySamples("oozie_workflow_job_state_time_seconds");
