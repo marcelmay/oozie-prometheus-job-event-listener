@@ -18,6 +18,8 @@ or if you run [Apache Oozie 4.3.+](http://oozie.apache.org/docs/4.3.0/release-lo
 | oozie_workflow_job_duration_seconds   | job_type, app_name, status | Duration of completed (Ooze status SUCCEEDED, KILLED, FAILED,...) job in seconds|
 | oozie_workflow_job_state_time_seconds | job_type, app_name, status | Timestamp of completed job state change, including job name and changed state. Can be used for monitoring last successful run.
 | oozie_workflow_job_total              | job_type, app_name, status | Count of completed jobs.
+| oozie_prometheus_job_listener_purge_duration_seconds | - | Summary tracking purge duration.
+| oozie_prometheus_job_listener_purged_items_total | - | Counter tracking number of purged metrics.
 
 Example output:
 ```
@@ -98,6 +100,16 @@ oozie_workflow_job_duration_seconds{job_type="WORKFLOW_JOB",app_name="test-4",st
    ```
    **Note**: Replace localhost with the name of your Oozie server, and change the Oozie default port if required.
    
+5) Optionally change the default purge timeout (three days) and purge interval (one day) for idle event samples
+   by setting a system property via JVM options:
+   ```
+   -DPrometheusJobEventListener.TimeSeries.Idle.TTL.seconds=259200
+   -DPrometheusJobEventListener.Purge.Interval.seconds=86400
+   ```
+   The listener tracks events in metric time series. So after a job terminates,
+   all its metrics should be purged after an idle timeout, to avoid clogging up memory.
+   Oozie workflow does have an end state which could trigger purges, but its not guaranteed and sometimes fails.
+
 ## Building
 ```
 mvn install
